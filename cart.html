@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cart - Veggie Market</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="padding-top:80px; padding-bottom:50px;">
+
+<div class="container reveal">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+    <h1 style="margin:0; font-size:2rem; font-weight:700;">Shopping Cart</h1>
+    <a href="shop.html" class="auth-btn" style="width:auto; padding:8px 20px; font-size:14px; text-decoration:none;">Continue Shopping</a>
+  </div>
+
+  <div class="cart-grid" id="cartContainer">
+    <!-- Rendered by JS -->
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script>
+  function renderCart() {
+    const cartItems = DB.get('cart').filter(c => c.user_id == App.user.id);
+    const products = DB.get('products');
+    
+    const container = document.getElementById('cartContainer');
+    container.innerHTML = '';
+
+    if (cartItems.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="grid-column: 1/-1;">
+          <div style="font-size:3rem; margin-bottom:15px;">🛒</div>
+          <h3>Your cart is empty</h3>
+          <p>Looks like you haven't added anything to your cart yet.</p>
+          <a href="shop.html" class="auth-btn" style="display:inline-block; width:auto; padding:10px 30px; margin-top:20px; text-decoration:none;">Go to Shop</a>
+        </div>
+      `;
+      return;
+    }
+
+    let subtotal = 0;
+    let itemsHtml = '<div class="cart-items">';
+
+    cartItems.forEach(c => {
+      const p = products.find(prod => prod.id == c.product_id);
+      if (p) {
+        const rowTotal = p.price * c.quantity;
+        subtotal += rowTotal;
+        itemsHtml += `
+          <div class="cart-item reveal">
+            <img src="${p.image}" class="ci-img" alt="${p.name}">
+            <div class="ci-details">
+              <div class="ci-title">${p.name}</div>
+              <div class="ci-price">₹${p.price} <span class="pc-unit">/ ${p.unit}</span></div>
+            </div>
+            <div class="ci-qty">
+              <button class="ci-qty-btn" onclick="updateQty(${p.id}, ${c.quantity - 1})">-</button>
+              <input type="number" class="ci-qty-input" value="${c.quantity}" readonly>
+              <button class="ci-qty-btn" onclick="updateQty(${p.id}, ${c.quantity + 1})">+</button>
+            </div>
+            <div class="ci-total">₹${rowTotal}</div>
+            <button class="ci-remove" onclick="updateQty(${p.id}, 0)">×</button>
+          </div>
+        `;
+      }
+    });
+    itemsHtml += '</div>';
+
+    const delivery = subtotal > 500 ? 0 : 40;
+    const total = subtotal + delivery;
+
+    const summaryHtml = `
+      <div class="cart-summary reveal">
+        <h3 class="cs-title">Order Summary</h3>
+        <div class="cs-row"><span>Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
+        <div class="cs-row">
+          <span>Delivery</span>
+          <span style="${delivery===0 ? 'color:var(--emerald);' : ''}">${delivery===0 ? 'FREE' : '₹'+delivery.toFixed(2)}</span>
+        </div>
+        ${delivery > 0 ? `<div style="font-size:12px; color:var(--g400); margin:-10px 0 15px 0; text-align:right;">Add ₹${(500-subtotal).toFixed(2)} more for free delivery</div>` : ''}
+        <div class="cs-divider"></div>
+        <div class="cs-row cs-total"><span>Total</span><span>₹${total.toFixed(2)}</span></div>
+        <button class="cs-btn" onclick="checkout()">Proceed to Checkout</button>
+      </div>
+    `;
+
+    container.innerHTML = itemsHtml + summaryHtml;
+  }
+
+  function updateQty(pid, qty) {
+    DB.updateCart(App.user.id, pid, qty);
+    renderCart();
+    
+    // update navbar badge
+    document.querySelector('.nav-container').remove();
+    App.renderNavbar('cart.html');
+  }
+
+  function checkout() {
+    const oid = DB.createOrder(App.user.id);
+    if (oid) {
+      App.showToast("Order placed successfully!");
+      setTimeout(() => {
+        window.location.href = 'orders.html';
+      }, 1000);
+    } else {
+      App.showToast("Failed to place order.", "error");
+    }
+  }
+
+  renderCart();
+</script>
+
+</body>
+</html>

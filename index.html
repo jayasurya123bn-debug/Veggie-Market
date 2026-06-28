@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Veggie Market</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+  
+  <div class="auth-card reveal">
+    <div class="auth-header">
+      <div class="auth-logo">🥬</div>
+      <h1 class="auth-title">Veggie Market</h1>
+      <p class="auth-subtitle">Sign in to your account</p>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" onsubmit="event.preventDefault(); App.login(this.email.value, this.password.value)">
+      <div class="input-group">
+        <label>Email Address</label>
+        <div class="input-wrapper">
+          <i>✉️</i>
+          <input type="email" name="email" required placeholder="name@example.com">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <i>🔒</i>
+          <input type="password" name="password" required placeholder="••••••••">
+        </div>
+      </div>
+      <button type="submit" class="auth-btn">Sign In</button>
+      <div class="auth-switch">
+        Don't have an account? <a href="#" onclick="toggleForms()">Sign up</a>
+      </div>
+      <!-- Note for users -->
+      <div style="margin-top:20px; font-size:12px; color:#94a3b8; text-align:center;">
+        Admin access: jayasurya123bn@gmail.com / admin
+      </div>
+    </form>
+
+    <!-- Register Form (Hidden by default) -->
+    <form id="registerForm" style="display: none;" onsubmit="event.preventDefault(); App.register(this.name.value, this.email.value, this.password.value)">
+      <div class="input-group">
+        <label>Full Name</label>
+        <div class="input-wrapper">
+          <i>👤</i>
+          <input type="text" name="name" required placeholder="John Doe">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Email Address</label>
+        <div class="input-wrapper">
+          <i>✉️</i>
+          <input type="email" name="email" required placeholder="name@example.com">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <i>🔒</i>
+          <input type="password" name="password" required placeholder="Create a password">
+        </div>
+      </div>
+      <button type="submit" class="auth-btn">Create Account</button>
+      <div class="auth-switch">
+        Already have an account? <a href="#" onclick="toggleForms()">Sign in</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    function toggleForms() {
+      const login = document.getElementById('loginForm');
+      const register = document.getElementById('registerForm');
+      if (login.style.display === 'none') {
+        login.style.display = 'block';
+        register.style.display = 'none';
+        document.querySelector('.auth-subtitle').innerText = 'Sign in to your account';
+      } else {
+        login.style.display = 'none';
+        register.style.display = 'block';
+        document.querySelector('.auth-subtitle').innerText = 'Create a new account';
+      }
+    }
+  </script>
+</body>
+</html>

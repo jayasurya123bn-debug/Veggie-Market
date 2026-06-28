@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Orders - Veggie Market</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="padding-top:80px; padding-bottom:50px;">
+
+<div class="container reveal">
+  <div style="margin-bottom:30px;">
+    <h1 style="margin:0; font-size:2rem; font-weight:700;">My Orders</h1>
+    <p style="color:var(--g400); margin-top:5px;">Track your recent purchases</p>
+  </div>
+
+  <div id="ordersContainer">
+    <!-- Rendered by JS -->
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script>
+  function renderOrders() {
+    const orders = DB.get('orders').filter(o => o.user_id == App.user.id).reverse();
+    const container = document.getElementById('ordersContainer');
+    container.innerHTML = '';
+
+    if (orders.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div style="font-size:3rem; margin-bottom:15px;">📦</div>
+          <h3>No orders yet</h3>
+          <p>You haven't placed any orders.</p>
+          <a href="shop.html" class="auth-btn" style="display:inline-block; width:auto; padding:10px 30px; margin-top:20px; text-decoration:none;">Go Shopping</a>
+        </div>
+      `;
+      return;
+    }
+
+    const statusMap = {
+      'pending':   { label: '⏳ Pending', percent: 10, color: 'var(--amber)' },
+      'confirmed': { label: '👍 Confirmed', percent: 25, color: 'var(--sky)' },
+      'packed':    { label: '📦 Packed', percent: 50, color: 'var(--blue)' },
+      'on_the_way':{ label: '🚚 On the way', percent: 75, color: 'var(--indigo)' },
+      'delivered': { label: '✅ Delivered', percent: 100, color: 'var(--emerald)' },
+      'cancelled': { label: '❌ Cancelled', percent: 100, color: 'var(--rose)' }
+    };
+
+    orders.forEach(o => {
+      const date = new Date(o.created_at).toLocaleString();
+      const s = statusMap[o.status] || statusMap['pending'];
+      
+      let itemsHtml = '';
+      o.items.forEach(i => {
+        itemsHtml += `
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px;">
+            <img src="${i.image}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
+            <div style="flex:1;">
+              <div style="font-weight:500;">${i.name}</div>
+              <div style="font-size:12px; color:var(--g400);">${i.quantity} × ₹${i.price}</div>
+            </div>
+            <div style="font-weight:600;">₹${i.price * i.quantity}</div>
+          </div>
+        `;
+      });
+
+      const orderCard = `
+        <div class="order-card reveal" style="background:var(--g800); border:1px solid rgba(255,255,255,0.05); border-radius:16px; padding:20px; margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:15px; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-size:12px; color:var(--g400);">Order #${o.id}</div>
+              <div style="font-size:14px; margin-top:2px;">${date}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px; color:var(--g400);">Total Amount</div>
+              <div style="font-size:1.1rem; font-weight:700; color:var(--emerald);">₹${o.total.toFixed(2)}</div>
+            </div>
+          </div>
+          
+          <div class="order-status-timeline" style="margin-bottom:25px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; font-weight:500; color:${s.color};">
+              <span>Status: ${s.label}</span>
+              ${o.status === 'cancelled' ? '' : `<span>${s.percent}%</span>`}
+            </div>
+            <div class="progress-track" style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+              <div class="progress-fill" style="height:100%; width:${s.percent}%; background:${s.color}; border-radius:3px; transition:width 0.5s;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:10px; color:var(--g300);">Items (${o.items.length})</div>
+            ${itemsHtml}
+          </div>
+        </div>
+      `;
+      container.innerHTML += orderCard;
+    });
+  }
+
+  renderOrders();
+</script>
+
+</body>
+</html>

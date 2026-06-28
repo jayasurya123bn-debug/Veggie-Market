@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shop - Veggie Market</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="padding-top:80px; padding-bottom:50px;">
+
+<div class="container reveal">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px; flex-wrap:wrap; gap:15px;">
+    <div>
+      <h1 style="margin:0; font-size:2rem; font-weight:700;">Fresh Market</h1>
+      <p style="color:var(--g400); margin-top:5px;">Handpicked vegetables & fruits</p>
+    </div>
+    
+    <div style="display:flex; gap:10px;">
+      <input type="text" id="searchInput" placeholder="Search products..." oninput="renderShop()" 
+             style="padding:10px 15px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:#fff; width:250px;">
+      <select id="catSelect" onchange="renderShop()" style="padding:10px 15px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:var(--g800); color:#fff;">
+        <option value="">All Categories</option>
+        <option value="vegetables">Vegetables</option>
+        <option value="fruits">Fruits</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="product-grid" id="productGrid">
+    <!-- Rendered by JS -->
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script>
+  function renderShop() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const cat = document.getElementById('catSelect').value;
+    
+    let products = DB.get('products');
+    
+    if (search) products = products.filter(p => p.name.toLowerCase().includes(search));
+    if (cat) products = products.filter(p => p.category === cat);
+    
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = '';
+    
+    if (products.length === 0) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;"><h3>No products found</h3><p>Try a different search term.</p></div>`;
+      return;
+    }
+
+    products.forEach((p, index) => {
+      const isWish = DB.inWishlist(App.user.id, p.id);
+      const wishIcon = isWish ? '❤️' : '🤍';
+      
+      let badges = '';
+      if (p.featured) badges += `<span class="pc-flag">✨ Featured</span>`;
+      if (p.stock <= 0) badges += `<span class="pc-flag" style="background:#555;">❌ Sold Out</span>`;
+
+      const delay = index * 0.05;
+
+      const card = `
+        <div class="product-card reveal" style="animation-delay:${delay}s">
+          <div class="pc-img-wrap">
+            <img src="${p.image}" class="pc-img" alt="${p.name}">
+            ${badges}
+            <button class="pc-wish" onclick="toggleWish(${p.id}); event.stopPropagation();" title="Toggle wishlist">${wishIcon}</button>
+          </div>
+          <div class="pc-body">
+            <div class="pc-cat">${p.category.toUpperCase()}</div>
+            <div class="pc-title">${p.name}</div>
+            <div class="pc-price">₹${p.price} <span class="pc-unit">/ ${p.unit}</span></div>
+            <button class="pc-btn" ${p.stock <= 0 ? 'disabled' : ''} onclick="addToCart(${p.id})">
+              ${p.stock > 0 ? 'Add to Cart 🛒' : 'Out of Stock'}
+            </button>
+          </div>
+        </div>
+      `;
+      grid.innerHTML += card;
+    });
+  }
+
+  function addToCart(pid) {
+    DB.addToCart(App.user.id, pid);
+    App.showToast("Added to cart!");
+    // Re-render navbar to update badge
+    document.querySelector('.nav-container').remove();
+    App.renderNavbar('shop.html');
+  }
+
+  function toggleWish(pid) {
+    DB.toggleWishlist(App.user.id, pid);
+    renderShop();
+    App.showToast("Wishlist updated!");
+  }
+
+  renderShop();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Veggie Market</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dashboard-body" style="padding-top:80px;">
+
+<div class="container reveal">
+  
+  <div class="welcome-header">
+    <div class="wh-text">
+      <h1 class="wh-title">Welcome back, <span id="userName" style="color:var(--emerald);"></span>! 👋</h1>
+      <p class="wh-subtitle">Here is what's happening with your account today.</p>
+    </div>
+    <div class="wh-stats">
+      <div class="stat-box">
+        <div class="stat-value" id="statOrders">0</div>
+        <div class="stat-label">Total Orders</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statWishlist">0</div>
+        <div class="stat-label">Saved Items</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions-grid reveal reveal-d1">
+    <a href="shop.html" class="action-card">
+      <div class="ac-icon" style="background:linear-gradient(135deg,var(--g500),var(--emerald));">🛒</div>
+      <div><div class="ac-title">Browse Shop</div><div class="ac-desc">Explore all fresh produce</div></div>
+    </a>
+    <a href="cart.html" class="action-card">
+      <div class="ac-icon" style="background:linear-gradient(135deg,var(--orange),#fb923c);">🛍️</div>
+      <div><div class="ac-title">My Cart</div><div class="ac-desc"><span id="cartCountDesc">0</span> items waiting</div></div>
+    </a>
+    <a href="orders.html" class="action-card">
+      <div class="ac-icon" style="background:linear-gradient(135deg,var(--sky),#38bdf8);">📦</div>
+      <div><div class="ac-title">My Orders</div><div class="ac-desc">Track your order history</div></div>
+    </a>
+    <a href="wishlist.html" class="action-card">
+      <div class="ac-icon" style="background:linear-gradient(135deg,var(--rose),#fb7185);">❤️</div>
+      <div><div class="ac-title">Wishlist</div><div class="ac-desc">Your saved favourites</div></div>
+    </a>
+    <a href="profile.html" class="action-card">
+      <div class="ac-icon" style="background:linear-gradient(135deg,var(--amber),#fbbf24);">👤</div>
+      <div><div class="ac-title">My Profile</div><div class="ac-desc">Edit account settings</div></div>
+    </a>
+    <a href="#" onclick="App.logout()" class="action-card" style="border-color:rgba(244,63,94,0.15);">
+      <div class="ac-icon" style="background:linear-gradient(135deg,var(--rose),#dc2626);">🚪</div>
+      <div><div class="ac-title">Sign Out</div><div class="ac-desc">Securely logout</div></div>
+    </a>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // Populate dashboard data
+  document.getElementById('userName').innerText = App.user.name;
+  
+  const orders = DB.get('orders').filter(o => o.user_id == App.user.id);
+  document.getElementById('statOrders').innerText = orders.length;
+  
+  const wishlist = DB.get('wishlist').filter(w => w.user_id == App.user.id);
+  document.getElementById('statWishlist').innerText = wishlist.length;
+  
+  document.getElementById('cartCountDesc').innerText = App.getCartCount();
+</script>
+
+</body>
+</html>
